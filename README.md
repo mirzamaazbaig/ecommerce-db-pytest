@@ -1,5 +1,7 @@
 # E-Commerce Database Tests: Python and pytest
 
+[![Database tests](https://github.com/mirzamaazbaig/ecommerce-db-pytest/actions/workflows/db-tests.yml/badge.svg)](https://github.com/mirzamaazbaig/ecommerce-db-pytest/actions/workflows/db-tests.yml)
+
 Database-level tests for the PostgreSQL schema of a React, Express and PostgreSQL online shop ([application under test](https://github.com/mirzamaazbaig/Ecom)). They check that the database protects itself, that data written through the API stays consistent, and that the migrations behave. 73 tests.
 
 ## What it shows
