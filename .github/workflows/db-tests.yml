@@ -19,8 +19,8 @@ permissions:
   contents: read
 
 env:
-  # The application branch under test. It must contain migration 002 and the fix for D7 (see docs/FINDINGS.md).
-  ECOM_REF: qa-test-automation
+  # The application branch under test. Empty means the default branch of the application repository.
+  ECOM_REF: ''
 
 jobs:
   pytest:
