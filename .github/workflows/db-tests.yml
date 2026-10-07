@@ -1,0 +1,118 @@
+name: Database tests (pytest)
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ecom_ref:
+        description: 'Branch, tag or SHA of the application repository to test'
+        required: false
+        default: ''
+
+concurrency:
+  group: db-pytest-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # The application branch under test. It must contain migration 002 and the fix for D7 (see docs/FINDINGS.md).
+  ECOM_REF: feature/modern-upgrade
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Check out the tests
+        uses: actions/checkout@v4
+
+      - name: Check out the application under test
+        uses: actions/checkout@v4
+        with:
+          repository: mirzamaazbaig/Ecom
+          ref: ${{ inputs.ecom_ref || env.ECOM_REF }}
+          path: app
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/server/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install the application's server
+        run: npm ci --prefix app/server
+
+      - name: Create and seed the database
+        working-directory: app/server
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecom_db
+        run: |
+          node db/setup.js
+          node scripts/migrate.js
+          node scripts/seedProducts.js
+
+      - name: Start the API
+        working-directory: app/server
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecom_db
+          SESSION_SECRET: ci-only-secret
+          NODE_ENV: test
+        run: |
+          nohup node index.js > ../../api.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5000/ > /dev/null && exit 0
+            sleep 1
+          done
+          echo "API did not start"; cat ../../api.log; exit 1
+
+      - name: Install test dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the database tests
+        env:
+          API_URL: http://localhost:5000/api
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecom_db
+          APP_REPO: ${{ github.workspace }}/app
+        run: pytest
+
+      - name: Upload HTML reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload API log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-log
+          path: api.log
+          if-no-files-found: ignore
+          retention-days: 14
