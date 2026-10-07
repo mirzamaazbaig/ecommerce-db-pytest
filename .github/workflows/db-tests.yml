@@ -20,7 +20,7 @@ permissions:
 
 env:
   # The application branch under test. It must contain migration 002 and the fix for D7 (see docs/FINDINGS.md).
-  ECOM_REF: feature/modern-upgrade
+  ECOM_REF: qa-test-automation
 
 jobs:
   pytest:
@@ -48,7 +48,7 @@ jobs:
       - name: Check out the application under test
         uses: actions/checkout@v4
         with:
-          repository: mirzamaazbaig/Ecom
+          repository: mirzamaazbaig/ecommerce-test-automation
           ref: ${{ inputs.ecom_ref || env.ECOM_REF }}
           path: app
 
