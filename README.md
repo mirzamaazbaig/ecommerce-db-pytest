@@ -2,6 +2,8 @@
 
 [![Database tests](https://github.com/mirzamaazbaig/ecommerce-db-pytest/actions/workflows/db-tests.yml/badge.svg)](https://github.com/mirzamaazbaig/ecommerce-db-pytest/actions/workflows/db-tests.yml)
 
+![CI run: all jobs passing](docs/images/ci-run.png)
+
 Database-level tests for the PostgreSQL schema of a React, Express and PostgreSQL online shop ([application under test](https://github.com/mirzamaazbaig/ecommerce-playwright-e2e-tests)). They check that the database protects itself, that data written through the API stays consistent, and that the migrations behave. 73 tests.
 
 ## What it shows
