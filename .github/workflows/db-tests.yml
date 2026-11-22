@@ -43,10 +43,10 @@ jobs:
 
     steps:
       - name: Check out the tests
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check out the application under test
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: mirzamaazbaig/ecommerce-test-automation
           ref: ${{ inputs.ecom_ref || env.ECOM_REF }}
